@@ -80,6 +80,7 @@ func (m *Mop) stale(images []ecr.ImageDetail) (stale []ecr.ImageDetail) {
 		}
 		if m.wipeUntagged && len(image.ImageTags) == 0 {
 			stale = append(stale, image)
+			continue
 		}
 		if image.ImagePushedAt.Before(time.Now().Add(-m.staleAfter)) {
 			stale = append(stale, image)

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,4 +104,32 @@ func TestStale(t *testing.T) {
 		assert.Equal(nil, err)
 		assert.Equal(staleAfterFixture["expected"], m.stale(staleAfterFixture["input"]))
 	})
+}
+
+func TestIdentifiersFrom(t *testing.T) {
+	input := []ecr.ImageDetail{
+		{
+			ImageDigest:   aws.String("foo123"),
+			ImagePushedAt: before,
+			ImageTags:     []string{"foo"},
+		},
+		{
+			ImageDigest:   aws.String("bar123"),
+			ImagePushedAt: before,
+			ImageTags:     []string{"bar"},
+		},
+	}
+	expected := []ecr.ImageIdentifier{
+		{
+			ImageDigest: aws.String("foo123"),
+		},
+		{
+			ImageDigest: aws.String("bar123"),
+		},
+	}
+
+	assert := assert.New(t)
+	m, err := New("test", 5, true, []string{})
+	assert.Equal(nil, err)
+	assert.Equal(expected, m.identifiersFrom(input))
 }

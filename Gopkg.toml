@@ -6,6 +6,10 @@
   name = "github.com/namsral/flag"
   version = "1.7.4-pre"
 
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  revision = "c679ae2cc0cb27ec3293fea7e254e47386f05d69"
+
 [prune]
   go-tests = true
   unused-packages = true

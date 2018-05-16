@@ -9,114 +9,98 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var before = func() *time.Time {
-	before := time.Now().Add(time.Hour * 24 * -10)
-	return &before
-}()
-
-var now = func() *time.Time {
-	now := time.Now()
-	return &now
-}()
-
-var igoreTagsFixture = map[string][]ecr.ImageDetail{
-	"input": []ecr.ImageDetail{
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{"foo"},
-		},
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{"latest"},
-		},
-	},
-	"expected": []ecr.ImageDetail{
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{"latest"},
-		},
-	},
-}
-
-var untaggedFixture = map[string][]ecr.ImageDetail{
-	"input": []ecr.ImageDetail{
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{},
-		},
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{"latest"},
-		},
-	},
-	"expected": []ecr.ImageDetail{
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{},
-		},
-	},
-}
-
-var staleAfterFixture = map[string][]ecr.ImageDetail{
-	"input": []ecr.ImageDetail{
-		{
-			ImagePushedAt: before,
-			ImageTags:     []string{"foo"},
-		},
-		{
-			ImagePushedAt: before,
-			ImageTags:     []string{"bar"},
-		},
-		{
-			ImagePushedAt: now,
-			ImageTags:     []string{"baz"},
-		},
-	},
-	"expected": []ecr.ImageDetail{
-		{
-			ImagePushedAt: before,
-			ImageTags:     []string{"foo"},
-		},
-		{
-			ImagePushedAt: before,
-			ImageTags:     []string{"bar"},
-		},
-	},
-}
-
 func TestStale(t *testing.T) {
+	now := aws.Time(time.Now())
+	before := aws.Time(time.Now().Add(time.Hour * 24 * -10))
 	assert := assert.New(t)
 
 	t.Run("ignoreTags", func(t *testing.T) {
+		input := []ecr.ImageDetail{
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{"foo"},
+			},
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{"latest"},
+			},
+		}
+		expected := []ecr.ImageDetail{
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{"latest"},
+			},
+		}
+
 		m, err := New("test", 0, false, []string{"foo"})
 		assert.Equal(nil, err)
-		assert.Equal(igoreTagsFixture["expected"], m.stale(igoreTagsFixture["input"]))
+		assert.Equal(expected, m.stale(input))
 	})
 
 	t.Run("untagged", func(t *testing.T) {
+		input := []ecr.ImageDetail{
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{},
+			},
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{"latest"},
+			},
+		}
+		expected := []ecr.ImageDetail{
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{},
+			},
+		}
+
 		m, err := New("test", 5, true, []string{})
 		assert.Equal(nil, err)
-		assert.Equal(untaggedFixture["expected"], m.stale(untaggedFixture["input"]))
+		assert.Equal(expected, m.stale(input))
 	})
 
 	t.Run("staleAfter", func(t *testing.T) {
+		input := []ecr.ImageDetail{
+			{
+				ImagePushedAt: before,
+				ImageTags:     []string{"foo"},
+			},
+			{
+				ImagePushedAt: before,
+				ImageTags:     []string{"bar"},
+			},
+			{
+				ImagePushedAt: now,
+				ImageTags:     []string{"baz"},
+			},
+		}
+		expected := []ecr.ImageDetail{
+			{
+				ImagePushedAt: before,
+				ImageTags:     []string{"foo"},
+			},
+			{
+				ImagePushedAt: before,
+				ImageTags:     []string{"bar"},
+			},
+		}
+
 		m, err := New("test", 5, false, []string{})
 		assert.Equal(nil, err)
-		assert.Equal(staleAfterFixture["expected"], m.stale(staleAfterFixture["input"]))
+		assert.Equal(expected, m.stale(input))
 	})
 }
 
 func TestIdentifiersFrom(t *testing.T) {
 	input := []ecr.ImageDetail{
 		{
-			ImageDigest:   aws.String("foo123"),
-			ImagePushedAt: before,
-			ImageTags:     []string{"foo"},
+			ImageDigest: aws.String("foo123"),
+			ImageTags:   []string{"foo"},
 		},
 		{
-			ImageDigest:   aws.String("bar123"),
-			ImagePushedAt: before,
-			ImageTags:     []string{"bar"},
+			ImageDigest: aws.String("bar123"),
+			ImageTags:   []string{"bar"},
 		},
 	}
 	expected := []ecr.ImageIdentifier{

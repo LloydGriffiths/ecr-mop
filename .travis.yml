@@ -1,0 +1,23 @@
+sudo: required
+language: go
+
+services:
+  - docker
+
+go:
+  - "1.10.x"
+
+branches:
+  only:
+    - master
+
+script:
+  - make compile test
+
+deploy:
+  provider: script
+  on:
+    branch: master
+  script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker push lloydg/ecr-mop

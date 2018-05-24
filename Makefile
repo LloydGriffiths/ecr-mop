@@ -18,4 +18,4 @@ docker-build:
 docker-push:
 	@docker push $(DOCKER_IMG)
 
-.PHONY: all compile docker docker-build docker-push
+.PHONY: all compile docker docker-build docker-push test

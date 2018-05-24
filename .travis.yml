@@ -12,12 +12,10 @@ branches:
     - master
 
 script:
-  - make compile test
+  - make test compile docker-build
 
 deploy:
   provider: script
+  script: bash deploy.sh
   on:
     branch: master
-  script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker push lloydg/ecr-mop

@@ -45,10 +45,6 @@ func (m *Mop) Wipe() (*Result, error) {
 	page := reqd.Paginate()
 
 	for page.Next() {
-		if page.Err() != nil {
-			return wres, page.Err()
-		}
-
 		r, err := m.delete(m.identifiersFrom(m.stale(page.CurrentPage().ImageDetails)))
 		if err != nil {
 			return wres, err
@@ -56,6 +52,10 @@ func (m *Mop) Wipe() (*Result, error) {
 
 		wres.Removed = append(wres.Removed, r.ImageIds...)
 		wres.Failed = append(wres.Failed, r.Failures...)
+	}
+
+	if page.Err() != nil {
+		return wres, page.Err()
 	}
 
 	return wres, nil
